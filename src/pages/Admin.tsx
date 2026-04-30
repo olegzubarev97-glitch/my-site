@@ -44,7 +44,7 @@ export default function Admin() {
   }
 
   if (!user || user.role !== "admin") {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   const handleLogout = () => {

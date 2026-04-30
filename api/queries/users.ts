@@ -34,3 +34,10 @@ export async function upsertUser(data: InsertUser) {
     .values(values)
     .onDuplicateKeyUpdate({ set: updateSet });
 }
+
+export async function updateUserPassword(unionId: string, passwordHash: string) {
+  await getDb()
+    .update(schema.users)
+    .set({ passwordHash })
+    .where(eq(schema.users.unionId, unionId));
+}

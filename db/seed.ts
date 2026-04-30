@@ -1,5 +1,7 @@
+import { eq } from "drizzle-orm";
 import { getDb } from "../api/queries/connection";
-import { rations, siteContent, siteConfig, galleryImages } from "./schema";
+import { rations, siteContent, siteConfig, galleryImages, users } from "./schema";
+import { hashPassword } from "../api/lib/password";
 
 async function seed() {
   const db = getDb();
@@ -172,6 +174,19 @@ async function seed() {
       { url: "/images/ration_fit.jpg", caption: "Лосось с бататом", sortOrder: 8, isActive: true },
     ]);
     console.log("Seeded gallery");
+  }
+
+  // Seed default admin
+  const existingAdmin = await db.select().from(users).where(eq(users.unionId, "admin"));
+  if (existingAdmin.length === 0) {
+    await db.insert(users).values({
+      unionId: "admin",
+      name: "Admin",
+      passwordHash: await hashPassword("admin"),
+      role: "admin",
+      lastSignInAt: new Date(),
+    });
+    console.log("Seeded default admin (admin / admin)");
   }
 
   console.log("Seed complete!");

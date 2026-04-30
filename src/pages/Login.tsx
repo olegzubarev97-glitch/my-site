@@ -1,39 +1,74 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-function getOAuthUrl() {
-  const kimiAuthUrl = import.meta.env.VITE_KIMI_AUTH_URL;
-  const appID = import.meta.env.VITE_APP_ID;
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  const state = btoa(redirectUri);
-
-  const url = new URL(`${kimiAuthUrl}/api/oauth/authorize`);
-  url.searchParams.set("client_id", appID);
-  url.searchParams.set("redirect_uri", redirectUri);
-  url.searchParams.set("response_type", "code");
-  url.searchParams.set("scope", "profile");
-  url.searchParams.set("state", state);
-
-  return url.toString();
-}
-
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { trpc } from "@/providers/trpc";
 export default function Login() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: () => {
+      window.location.href = "/admin";
+    },
+    onError: (err) => {
+      setError(err.message || "Login failed");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!username || !password) {
+      setError("Please enter username and password");
+      return;
+    }
+    loginMutation.mutate({ username, password });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle>Welcome</CardTitle>
+          <CardTitle>Admin Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={() => {
-              window.location.href = getOAuthUrl();
-            }}
-          >
-            Sign in with Kimi
-          </Button>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin"
+                autoComplete="username"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••"
+                autoComplete="current-password"
+              />
+            </div>
+            {error && (
+              <p className="text-sm text-red-600">{error}</p>
+            )}
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? "Signing in..." : "Sign in"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
