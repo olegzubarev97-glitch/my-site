@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: inbalance
+      MYSQL_USER: inbalance
+      MYSQL_PASSWORD: inbalance_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://inbalance:inbalance_pass@db:3306/inbalance
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./public/images:/app/dist/public/images
+
+volumes:
+  mysql_data:
