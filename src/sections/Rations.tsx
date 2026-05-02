@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/providers/trpc";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Flame, ArrowRight } from "lucide-react";
+import { Flame, ArrowRight, Eye } from "lucide-react";
+import { RationMenuDialog } from "@/components/RationMenuDialog";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,6 +15,8 @@ interface RationsProps {
 export function Rations({ onSelectRation }: RationsProps) {
   const { data: rations, isLoading } = trpc.ration.list.useQuery();
   const sectionRef = useRef<HTMLElement>(null);
+  const [menuSlug, setMenuSlug] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!rations || isLoading) return;
@@ -106,19 +109,38 @@ export function Rations({ onSelectRation }: RationsProps) {
                   <div className="text-sm text-[#6B6B6B] mb-4">
                     {ration.priceWeek.toLocaleString("ru-RU")} ₽ / неделя
                   </div>
-                  <Button
-                    onClick={() => onSelectRation(ration.id)}
-                    className="w-full bg-[#6B7B5E] hover:bg-[#4A5A3F] text-white"
-                  >
-                    Выбрать рацион
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-[#6B7B5E] text-[#6B7B5E] hover:bg-[#6B7B5E]/5"
+                      onClick={() => {
+                        setMenuSlug(ration.slug);
+                        setMenuOpen(true);
+                      }}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Меню
+                    </Button>
+                    <Button
+                      onClick={() => onSelectRation(ration.id)}
+                      className="flex-1 bg-[#6B7B5E] hover:bg-[#4A5A3F] text-white"
+                    >
+                      Выбрать
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      <RationMenuDialog
+        slug={menuSlug}
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+      />
     </section>
   );
 }

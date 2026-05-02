@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   Utensils,
+  CookingPot,
   Users,
   FileText,
   Settings,
@@ -19,10 +20,12 @@ import { LeadManager } from "@/components/admin/LeadManager";
 import { ContentManager } from "@/components/admin/ContentManager";
 import { ConfigManager } from "@/components/admin/ConfigManager";
 import { GalleryManager } from "@/components/admin/GalleryManager";
+import { DishManager } from "@/components/admin/DishManager";
 
 const TABS = [
   { id: "dashboard", label: "Обзор", icon: LayoutDashboard },
   { id: "rations", label: "Рационы", icon: Utensils },
+  { id: "dishes", label: "Блюда", icon: CookingPot },
   { id: "leads", label: "Заявки", icon: Users },
   { id: "content", label: "Контент", icon: FileText },
   { id: "gallery", label: "Галерея", icon: Image },
@@ -61,6 +64,8 @@ export default function Admin() {
         return <DashboardTab />;
       case "rations":
         return <RationManager />;
+      case "dishes":
+        return <DishManager />;
       case "leads":
         return <LeadManager />;
       case "content":

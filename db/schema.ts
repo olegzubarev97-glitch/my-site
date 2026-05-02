@@ -110,3 +110,58 @@ export const galleryImages = mysqlTable("galleryImages", {
 
 export type GalleryImage = typeof galleryImages.$inferSelect;
 export type InsertGalleryImage = typeof galleryImages.$inferInsert;
+
+export const dishes = mysqlTable("dishes", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  imageUrl: varchar("imageUrl", { length: 500 }),
+  caloriesPer100g: int("caloriesPer100g").notNull(),
+  proteinPer100g: decimal("proteinPer100g", { precision: 5, scale: 1 }).notNull(),
+  fatPer100g: decimal("fatPer100g", { precision: 5, scale: 1 }).notNull(),
+  carbsPer100g: decimal("carbsPer100g", { precision: 5, scale: 1 }).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+export type Dish = typeof dishes.$inferSelect;
+export type InsertDish = typeof dishes.$inferInsert;
+
+export const rationDays = mysqlTable("rationDays", {
+  id: serial("id").primaryKey(),
+  rationId: int("rationId").notNull(),
+  dayIndex: int("dayIndex").notNull(), // 0=Пн, 1=Вт, ..., 6=Вс
+  dayName: varchar("dayName", { length: 20 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type RationDay = typeof rationDays.$inferSelect;
+export type InsertRationDay = typeof rationDays.$inferInsert;
+
+export const dailyMeals = mysqlTable("dailyMeals", {
+  id: serial("id").primaryKey(),
+  rationDayId: int("rationDayId").notNull(),
+  mealType: varchar("mealType", { length: 20 }).notNull(), // breakfast, lunch, dinner, snack1, snack2
+  name: varchar("name", { length: 100 }),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DailyMeal = typeof dailyMeals.$inferSelect;
+export type InsertDailyMeal = typeof dailyMeals.$inferInsert;
+
+export const dailyMealDishes = mysqlTable("dailyMealDishes", {
+  id: serial("id").primaryKey(),
+  dailyMealId: int("dailyMealId").notNull(),
+  dishId: int("dishId").notNull(),
+  weight: int("weight").notNull(), // grams
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DailyMealDish = typeof dailyMealDishes.$inferSelect;
+export type InsertDailyMealDish = typeof dailyMealDishes.$inferInsert;
