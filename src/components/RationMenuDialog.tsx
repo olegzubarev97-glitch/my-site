@@ -18,9 +18,7 @@ interface RationMenuDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function calcCalories(caloriesPer100g: number, weight: number) {
-  return Math.round((caloriesPer100g * weight) / 100);
-}
+
 
 export function RationMenuDialog({ slug, open, onOpenChange }: RationMenuDialogProps) {
   const { data, isLoading } = trpc.ration.getBySlug.useQuery(
@@ -96,7 +94,6 @@ export function RationMenuDialog({ slug, open, onOpenChange }: RationMenuDialogP
                           {meal.dishes.map((dishLink: any) => {
                             const dish = dishLink.dish;
                             if (!dish) return null;
-                            const calories = calcCalories(dish.caloriesPer100g, dishLink.weight);
                             return (
                               <div
                                 key={dishLink.id}
@@ -114,11 +111,11 @@ export function RationMenuDialog({ slug, open, onOpenChange }: RationMenuDialogP
                                     {dish.name}
                                   </div>
                                   <div className="text-xs text-[#6B6B6B]">
-                                    {dishLink.weight} г
+                                    {dishLink.weight}
                                   </div>
                                 </div>
                                 <div className="text-sm font-medium text-[#E07B3A]">
-                                  {calories} ккал
+                                  {dish.calories} ккал
                                 </div>
                               </div>
                             );

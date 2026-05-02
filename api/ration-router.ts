@@ -6,7 +6,7 @@ import { eq, inArray } from "drizzle-orm";
 
 const mealDishSchema = z.object({
   dishId: z.number().int().positive(),
-  weight: z.number().int().positive(),
+  weight: z.string().min(1),
   sortOrder: z.number().int().default(0),
 });
 

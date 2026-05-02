@@ -35,10 +35,11 @@ export function DishManager() {
       name: fd.get("name") as string,
       description: (fd.get("description") as string) || undefined,
       imageUrl: (fd.get("imageUrl") as string) || undefined,
-      caloriesPer100g: Number(fd.get("caloriesPer100g")),
-      proteinPer100g: fd.get("proteinPer100g") as string,
-      fatPer100g: fd.get("fatPer100g") as string,
-      carbsPer100g: fd.get("carbsPer100g") as string,
+      calories: Number(fd.get("calories")),
+      protein: fd.get("protein") as string,
+      fat: fd.get("fat") as string,
+      carbs: fd.get("carbs") as string,
+      weight: fd.get("weight") as string,
       isActive,
     };
     if (editing) {
@@ -75,8 +76,9 @@ export function DishManager() {
           <TableHeader>
             <TableRow>
               <TableHead>Название</TableHead>
-              <TableHead>Ккал/100г</TableHead>
+              <TableHead>Ккал</TableHead>
               <TableHead>Б/Ж/У</TableHead>
+              <TableHead>Вес</TableHead>
               <TableHead>Активно</TableHead>
               <TableHead className="text-right">Действия</TableHead>
             </TableRow>
@@ -92,8 +94,9 @@ export function DishManager() {
                     {d.name}
                   </div>
                 </TableCell>
-                <TableCell>{d.caloriesPer100g}</TableCell>
-                <TableCell>{d.proteinPer100g}/{d.fatPer100g}/{d.carbsPer100g}</TableCell>
+                <TableCell>{d.calories}</TableCell>
+                <TableCell>{d.protein}/{d.fat}/{d.carbs}</TableCell>
+                <TableCell>{d.weight}</TableCell>
                 <TableCell>
                   <Switch checked={d.isActive} disabled />
                 </TableCell>
@@ -138,23 +141,27 @@ export function DishManager() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Ккал/100г</label>
-                <Input name="caloriesPer100g" type="number" defaultValue={editing?.caloriesPer100g ?? ""} required />
+                <label className="text-sm font-medium mb-1 block">Ккал (на порцию)</label>
+                <Input name="calories" type="number" defaultValue={editing?.calories ?? ""} required />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Белки/100г</label>
-                <Input name="proteinPer100g" defaultValue={editing?.proteinPer100g ?? ""} required />
+                <label className="text-sm font-medium mb-1 block">Белки</label>
+                <Input name="protein" defaultValue={editing?.protein ?? ""} required />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Жиры/100г</label>
-                <Input name="fatPer100g" defaultValue={editing?.fatPer100g ?? ""} required />
+                <label className="text-sm font-medium mb-1 block">Жиры</label>
+                <Input name="fat" defaultValue={editing?.fat ?? ""} required />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Углеводы/100г</label>
-                <Input name="carbsPer100g" defaultValue={editing?.carbsPer100g ?? ""} required />
+                <label className="text-sm font-medium mb-1 block">Углеводы</label>
+                <Input name="carbs" defaultValue={editing?.carbs ?? ""} required />
               </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Вес порции</label>
+              <Input name="weight" defaultValue={editing?.weight ?? ""} required />
             </div>
             <div className="flex items-center gap-2 pt-2">
               <Switch checked={isActive} onCheckedChange={setIsActive} />

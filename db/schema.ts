@@ -116,10 +116,11 @@ export const dishes = mysqlTable("dishes", {
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   imageUrl: varchar("imageUrl", { length: 500 }),
-  caloriesPer100g: int("caloriesPer100g").notNull(),
-  proteinPer100g: decimal("proteinPer100g", { precision: 5, scale: 1 }).notNull(),
-  fatPer100g: decimal("fatPer100g", { precision: 5, scale: 1 }).notNull(),
-  carbsPer100g: decimal("carbsPer100g", { precision: 5, scale: 1 }).notNull(),
+  calories: int("calories").notNull(),
+  protein: decimal("protein", { precision: 5, scale: 1 }).notNull(),
+  fat: decimal("fat", { precision: 5, scale: 1 }).notNull(),
+  carbs: decimal("carbs", { precision: 5, scale: 1 }).notNull(),
+  weight: varchar("weight", { length: 20 }).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt")
@@ -158,7 +159,7 @@ export const dailyMealDishes = mysqlTable("dailyMealDishes", {
   id: serial("id").primaryKey(),
   dailyMealId: int("dailyMealId").notNull(),
   dishId: int("dishId").notNull(),
-  weight: int("weight").notNull(), // grams
+  weight: varchar("weight", { length: 20 }).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

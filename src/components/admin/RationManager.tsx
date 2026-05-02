@@ -21,7 +21,7 @@ const MEAL_TYPES = [
 
 interface MenuMealDish {
   dishId: number;
-  weight: number;
+  weight: string;
   sortOrder: number;
   dishName?: string;
   dishImageUrl?: string | null;
@@ -49,10 +49,7 @@ function createEmptyMenu(): MenuDay[] {
   }));
 }
 
-function calcDishCalories(dish: any, weight: number) {
-  if (!dish) return 0;
-  return Math.round((dish.caloriesPer100g * weight) / 100);
-}
+
 
 export function RationManager() {
   const { data: rations, refetch } = trpc.ration.adminList.useQuery();
@@ -219,7 +216,7 @@ export function RationManager() {
     );
   };
 
-  const addDishToMeal = (dayIndex: number, mealIdx: number, dishId: number, weight: number) => {
+  const addDishToMeal = (dayIndex: number, mealIdx: number, dishId: number, weight: string) => {
     const dish = allDishes?.find((d) => d.id === dishId);
     if (!dish) return;
     setMenu((prev) =>
@@ -265,7 +262,7 @@ export function RationManager() {
     );
   };
 
-  const updateDishWeight = (dayIndex: number, mealIdx: number, dishIdx: number, weight: number) => {
+  const updateDishWeight = (dayIndex: number, mealIdx: number, dishIdx: number, weight: string) => {
     setMenu((prev) =>
       prev.map((day) =>
         day.dayIndex === dayIndex
@@ -500,16 +497,14 @@ export function RationManager() {
                               <div className="flex-1 text-sm">{dish.dishName || dishInfo?.name}</div>
                               <div className="flex items-center gap-2">
                                 <Input
-                                  type="number"
-                                  className="w-20 h-7 text-sm"
+                                  className="w-24 h-7 text-sm"
                                   value={dish.weight}
                                   onChange={(e) =>
-                                    updateDishWeight(activeDay, mealIdx, dishIdx, Number(e.target.value))
+                                    updateDishWeight(activeDay, mealIdx, dishIdx, e.target.value)
                                   }
                                 />
-                                <span className="text-xs text-gray-400 w-8">г</span>
                                 <span className="text-xs text-gray-500 w-16 text-right">
-                                  {calcDishCalories(dishInfo, dish.weight)} ккал
+                                  {dishInfo?.calories ?? '-'} ккал
                                 </span>
                                 <Button
                                   type="button"
@@ -530,8 +525,8 @@ export function RationManager() {
                             onValueChange={(val) => {
                               const dishId = Number(val);
                               const input = document.getElementById(`weight-${activeDay}-${mealIdx}`) as HTMLInputElement;
-                              const weight = Number(input?.value || 100);
-                              if (dishId && weight > 0) {
+                              const weight = input?.value || '100г';
+                              if (dishId && weight) {
                                 addDishToMeal(activeDay, mealIdx, dishId, weight);
                               }
                             }}
@@ -542,18 +537,16 @@ export function RationManager() {
                             <SelectContent>
                               {allDishes?.filter((d) => d.isActive).map((d) => (
                                 <SelectItem key={d.id} value={String(d.id)}>
-                                  {d.name} ({d.caloriesPer100g} ккал/100г)
+                                  {d.name} ({d.calories} ккал)
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           <Input
                             id={`weight-${activeDay}-${mealIdx}`}
-                            type="number"
-                            defaultValue={100}
-                            className="w-20 h-8 text-sm"
+                            defaultValue="100г"
+                            className="w-24 h-8 text-sm"
                           />
-                          <span className="text-xs text-gray-400">г</span>
                         </div>
                       </div>
                     )}

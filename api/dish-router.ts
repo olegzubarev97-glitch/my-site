@@ -32,10 +32,11 @@ export const dishRouter = createRouter({
         name: z.string().min(1).max(100),
         description: z.string().optional(),
         imageUrl: z.string().optional(),
-        caloriesPer100g: z.number().int().min(0),
-        proteinPer100g: z.string().min(1),
-        fatPer100g: z.string().min(1),
-        carbsPer100g: z.string().min(1),
+        calories: z.number().int().min(0),
+        protein: z.string().min(1),
+        fat: z.string().min(1),
+        carbs: z.string().min(1),
+        weight: z.string().min(1),
         isActive: z.boolean().default(true),
       })
     )
@@ -52,10 +53,11 @@ export const dishRouter = createRouter({
         name: z.string().min(1).max(100).optional(),
         description: z.string().optional(),
         imageUrl: z.string().optional(),
-        caloriesPer100g: z.number().int().min(0).optional(),
-        proteinPer100g: z.string().min(1).optional(),
-        fatPer100g: z.string().min(1).optional(),
-        carbsPer100g: z.string().min(1).optional(),
+        calories: z.number().int().min(0).optional(),
+        protein: z.string().min(1).optional(),
+        fat: z.string().min(1).optional(),
+        carbs: z.string().min(1).optional(),
+        weight: z.string().min(1).optional(),
         isActive: z.boolean().optional(),
       })
     )
