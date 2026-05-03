@@ -1,6 +1,7 @@
 import pandas as pd
 import mysql.connector
 from mysql.connector import Error
+from datetime import datetime
 
 # ── Config ──────────────────────────────────────────────────────
 EXCEL_PATH = "/Users/olegzubarev/Desktop/FoodNutrion/рационы один файл.xlsx"
@@ -12,12 +13,23 @@ DB_CONFIG = {
     "database": "inbalance",
 }
 
-# ration_id from DB (seeded order: SLIM=1, FIT=2, SPORT=3, MASS=4)
-RATIONS = [
-    {"id": 1, "name": "SLIM", "rows": (0, 33)},
-    {"id": 2, "name": "FIT", "rows": (42, 77)},
-    {"id": 3, "name": "SPORT", "rows": (87, 122)},
-    {"id": 4, "name": "MASS", "rows": (130, 164)},
+# Block definitions: (start_row, end_row, price_row, name, slug, calories, description, targetAudience)
+RATIONS_DEF = [
+    (0, 31, 34, "BALANCE 1200", "balance-1200", 1200,
+     "Низкокалорийный рацион для похудения и детокса. Легкие блюда, богатые белком.",
+     "Для тех, кто хочет сбросить вес и подтянуть фигуру."),
+    (37, 71, 74, "BALANCE 1500", "balance-1500", 1500,
+     "Сбалансированный рацион для комфортного снижения веса. Оптимальное соотношение КБЖУ.",
+     "Для активных людей, которые хотят похудеть без голода."),
+    (76, 113, 116, "BALANCE 1800", "balance-1800", 1800,
+     "Рацион для поддержания формы и здорового образа жизни. Полноценное питание с достаточной калорийностью.",
+     "Для тех, кто ведет активный образ жизни и занимается спортом."),
+    (119, 155, 158, "BALANCE 2000", "balance-2000", 2000,
+     "Рацион для поддержания веса и высокой активности. Максимум энергии для тренировок и работы.",
+     "Для спортсменов и людей с высокой физической нагрузкой."),
+    (161, 197, 200, "BALANCE 2500", "balance-2500", 2500,
+     "Высококалорийный рацион для набора мышечной массы. Богатый белком и сложными углеводами.",
+     "Для хардгейнеров и бодибилдеров в период набора массы."),
 ]
 
 DAY_ORDER = {"Пн": 0, "Вт": 1, "Ср": 2, "Чт": 3, "Пт": 4, "Сб": 5, "Вс": 6}
@@ -43,15 +55,12 @@ def normalize_meal(meal):
     return m if m in MEAL_ORDER else None
 
 
-from datetime import datetime
-
 def clean_weight(val):
     if pd.isna(val):
         return ""
     v = str(val).strip()
     if v.lower() in ["1 порц.", "1 порц"]:
         return "1 порц."
-    # Remove trailing 'г' if present and return with it for consistency
     if v.endswith("г") and v[:-1].replace(".", "", 1).isdigit():
         return v
     if v.replace(".", "", 1).isdigit():
@@ -59,8 +68,13 @@ def clean_weight(val):
     return v
 
 
+def clean_name(name):
+    if pd.isna(name):
+        return ""
+    return str(name).strip().replace("\n", " / ")
+
+
 def clean_number(val):
-    """Handle Excel auto-converted dates (e.g. 14 -> 2026-01-14)."""
     if pd.isna(val):
         return None
     if isinstance(val, datetime):
@@ -71,10 +85,19 @@ def clean_number(val):
         return None
 
 
-def clean_name(name):
-    if pd.isna(name):
-        return ""
-    return str(name).strip().replace("\n", " / ")
+def parse_prices(row):
+    """Extract prices for 1, 3, 5, 7, 14 days from price row."""
+    prices = []
+    for i in range(5):
+        val = row[i] if i < len(row) else None
+        if val and "р" in str(val):
+            try:
+                prices.append(int(str(val).replace("р", "").replace(" ", "").strip()))
+            except ValueError:
+                prices.append(None)
+        else:
+            prices.append(None)
+    return prices
 
 
 def main():
@@ -84,53 +107,106 @@ def main():
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor(dictionary=True)
 
-        # Clear existing menu data to avoid duplicates
+        # Clear everything
         cursor.execute("DELETE FROM dailyMealDishes")
         cursor.execute("DELETE FROM dailyMeals")
         cursor.execute("DELETE FROM rationDays")
         cursor.execute("DELETE FROM dishes")
+        cursor.execute("DELETE FROM rations")
         conn.commit()
 
         dish_cache = {}  # name_lower -> dish_id
 
-        for ration in RATIONS:
-            ration_id = ration["id"]
-            start, end = ration["rows"]
+        for idx, (start, end, price_row, name, slug, calories, description, target) in enumerate(RATIONS_DEF):
+            ration_id = idx + 1
+            sort_order = idx + 1
+
+            # Parse prices
+            price_data = df.iloc[price_row]
+            prices = parse_prices(price_data.tolist())
+            price1 = prices[0] or 0
+            price3 = prices[1] or 0
+            price5 = prices[2] or 0
+            price7 = prices[3] or 0
+            price14 = prices[4] or 0
+
+            # Use declared calories from definition
+            avg_kcal = calories
+
             subset = df.iloc[start : end + 1]
 
-            print(f"\nImporting {ration['name']} (rows {start}-{end})...")
+            # Calculate average daily macros from Excel data
+            day_macros = {}
+            for _, row in subset.iterrows():
+                day = normalize_day(row.get("День"))
+                protein = clean_number(row.get("Белки")) or 0
+                fat = clean_number(row.get("Жиры")) or 0
+                carbs = clean_number(row.get("Углеводы")) or 0
+                kcal = clean_number(row.get("Ккал"))
+                # Sanity check: fix obvious Excel typos where carbs are 10x+ too high
+                if carbs > 150 and kcal and kcal > 0:
+                    calc_carbs = (kcal - protein * 4 - fat * 9) / 4
+                    if calc_carbs > 0:
+                        carbs = round(calc_carbs, 1)
+                if day:
+                    if day not in day_macros:
+                        day_macros[day] = [0.0, 0.0, 0.0]
+                    day_macros[day][0] += protein
+                    day_macros[day][1] += fat
+                    day_macros[day][2] += carbs
+            avg_protein = round(sum(v[0] for v in day_macros.values()) / max(len(day_macros), 1), 1)
+            avg_fat = round(sum(v[1] for v in day_macros.values()) / max(len(day_macros), 1), 1)
+            avg_carbs = round(sum(v[2] for v in day_macros.values()) / max(len(day_macros), 1), 1)
 
-            # Track meals per day to assign sortOrder inside each day
-            day_meal_counters = {}
+            # Insert ration
+            cursor.execute(
+                """
+                INSERT INTO rations (id, name, slug, calories, protein, fat, carbs,
+                    price1Day, price5Days, price7Days, price14Days,
+                    description, targetAudience, sortOrder, isActive)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (ration_id, name, slug, avg_kcal, str(avg_protein), str(avg_fat), str(avg_carbs),
+                 price1, price5, price7, price14,
+                 description, target, sort_order, True),
+            )
+            conn.commit()
+
+            print(f"\nImporting {name} (rows {start}-{end})...")
 
             for _, row in subset.iterrows():
                 day = normalize_day(row.get("День"))
                 meal = normalize_meal(row.get("Прием пищи"))
-                name = clean_name(row.get("Блюдо"))
+                dish_name = clean_name(row.get("Блюдо"))
                 weight = clean_weight(row.get("Вес, г"))
                 protein = clean_number(row.get("Белки")) or 0
                 fat = clean_number(row.get("Жиры")) or 0
                 carbs = clean_number(row.get("Углеводы")) or 0
-                calories = clean_number(row.get("Ккал"))
+                kcal = clean_number(row.get("Ккал"))
 
-                if not day or not meal or not name:
+                if not day or not meal or not dish_name:
                     continue
-                if calories is None:
+                if kcal is None:
                     continue
+
+                # Sanity check: fix obvious Excel typos where carbs are 10x+ too high
+                if carbs > 150 and kcal > 0:
+                    calc_carbs = (kcal - protein * 4 - fat * 9) / 4
+                    if calc_carbs > 0:
+                        carbs = round(calc_carbs, 1)
 
                 # Ensure dish exists
-                name_key = name.lower()
+                name_key = dish_name.lower()
                 if name_key not in dish_cache:
                     cursor.execute(
                         """
                         INSERT INTO dishes (name, calories, protein, fat, carbs, weight, isActive)
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                         """,
-                        (name, int(calories), str(protein), str(fat), str(carbs), weight, True),
+                        (dish_name, int(kcal), str(protein), str(fat), str(carbs), weight, True),
                     )
                     conn.commit()
                     dish_cache[name_key] = cursor.lastrowid
-                    print(f"  Created dish: {name}")
 
                 dish_id = dish_cache[name_key]
 
@@ -151,7 +227,7 @@ def main():
                     conn.commit()
                     ration_day_id = cursor.lastrowid
 
-                # Create dailyMeal for this occurrence
+                # Create dailyMeal
                 meal_sort = MEAL_ORDER[meal]
                 cursor.execute(
                     "INSERT INTO dailyMeals (rationDayId, mealType, sortOrder) VALUES (%s, %s, %s)",

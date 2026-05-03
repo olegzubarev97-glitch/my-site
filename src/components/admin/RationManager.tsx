@@ -124,8 +124,10 @@ export function RationManager() {
       protein: fd.get("protein") as string,
       fat: fd.get("fat") as string,
       carbs: fd.get("carbs") as string,
-      priceDay: Number(fd.get("priceDay")),
-      priceWeek: Number(fd.get("priceWeek")),
+      price1Day: Number(fd.get("price1Day")),
+      price5Days: Number(fd.get("price5Days")),
+      price7Days: Number(fd.get("price7Days")),
+      price14Days: Number(fd.get("price14Days")),
       description: (fd.get("description") as string) || undefined,
       targetAudience: (fd.get("targetAudience") as string) || undefined,
       imageUrl: (fd.get("imageUrl") as string) || undefined,
@@ -308,7 +310,7 @@ export function RationManager() {
               <TableRow key={r.id}>
                 <TableCell className="font-medium">{r.name}</TableCell>
                 <TableCell>{r.calories}</TableCell>
-                <TableCell>{r.priceDay.toLocaleString("ru-RU")} ₽</TableCell>
+                <TableCell>{r.price1Day?.toLocaleString("ru-RU")} ₽</TableCell>
                 <TableCell>{r.daysCount ?? 0}</TableCell>
                 <TableCell>
                   <Switch checked={r.isActive} disabled />
@@ -372,12 +374,22 @@ export function RationManager() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Цена/день</label>
-                <Input name="priceDay" type="number" defaultValue={editing?.priceDay ?? ""} required />
+                <label className="text-sm font-medium mb-1 block">Цена 1 день</label>
+                <Input name="price1Day" type="number" defaultValue={editing?.price1Day ?? ""} required />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Цена/неделя</label>
-                <Input name="priceWeek" type="number" defaultValue={editing?.priceWeek ?? ""} required />
+                <label className="text-sm font-medium mb-1 block">Цена 5 дней</label>
+                <Input name="price5Days" type="number" defaultValue={editing?.price5Days ?? ""} required />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Цена 7 дней</label>
+                <Input name="price7Days" type="number" defaultValue={editing?.price7Days ?? ""} required />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Цена 14 дней</label>
+                <Input name="price14Days" type="number" defaultValue={editing?.price14Days ?? ""} required />
               </div>
             </div>
             <div>
