@@ -11,7 +11,7 @@ const mealDishSchema = z.object({
 });
 
 const mealSchema = z.object({
-  mealType: z.enum(["breakfast", "lunch", "dinner", "snack1", "snack2"]),
+  mealType: z.string().min(1),
   name: z.string().max(100).optional(),
   sortOrder: z.number().int().default(0),
   dishes: z.array(mealDishSchema).default([]),

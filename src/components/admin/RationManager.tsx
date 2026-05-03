@@ -12,11 +12,10 @@ import { Plus, Pencil, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
 const DAY_NAMES = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
 const MEAL_TYPES = [
-  { value: "breakfast", label: "Завтрак" },
-  { value: "lunch", label: "Обед" },
-  { value: "dinner", label: "Ужин" },
-  { value: "snack1", label: "Перекус 1" },
-  { value: "snack2", label: "Перекус 2" },
+  { value: "Завтрак", label: "Завтрак" },
+  { value: "Обед", label: "Обед" },
+  { value: "Ужин", label: "Ужин" },
+  { value: "Перекус", label: "Перекус" },
 ];
 
 interface MenuMealDish {
@@ -28,7 +27,7 @@ interface MenuMealDish {
 }
 
 interface MenuMeal {
-  mealType: "breakfast" | "lunch" | "dinner" | "snack1" | "snack2";
+  mealType: string;
   name?: string;
   sortOrder: number;
   dishes: MenuMealDish[];
@@ -447,7 +446,7 @@ export function RationManager() {
                         </button>
                         <Select
                           value={meal.mealType}
-                          onValueChange={(v) => updateMeal(activeDay, mealIdx, { mealType: v as MenuMeal["mealType"] })}
+                          onValueChange={(v) => updateMeal(activeDay, mealIdx, { mealType: v })}
                         >
                           <SelectTrigger className="w-[160px] h-8 text-sm">
                             <SelectValue />
