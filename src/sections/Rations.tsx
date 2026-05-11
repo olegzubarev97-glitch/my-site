@@ -56,10 +56,10 @@ export function Rations({ onSelectRation }: RationsProps) {
   if (isLoading) {
     return (
       <section ref={sectionRef} id="rations" className="py-20 bg-[#FAF9F7]">
-        <div className="max-w-[1200px] mx-auto px-4">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6 xl:gap-8">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-96 bg-[#F5F1EB] rounded-2xl animate-pulse" />
+              <div key={i} className="h-[560px] bg-[#F5F1EB] rounded-[28px] animate-pulse" />
             ))}
           </div>
         </div>
@@ -69,57 +69,63 @@ export function Rations({ onSelectRation }: RationsProps) {
 
   return (
     <section ref={sectionRef} id="rations" className="py-20 bg-[#FAF9F7]">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl text-[#1E1E1E] mb-4">Выберите свой рацион</h2>
-          <p className="text-[#6B6B6B] max-w-lg mx-auto">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12 lg:mb-14">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl text-[#1E1E1E] mb-4">Выберите свой рацион</h2>
+          <p className="text-[#6B6B6B] text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
             5 программ питания для любой цели — от похудения до набора массы
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6 xl:gap-8 items-stretch">
           {rations?.map((ration) => {
             const days = selectedDays[ration.id] ?? 1;
             const price = getPrice(ration, days);
             return (
               <div
                 key={ration.id}
-                className="ration-card bg-white rounded-2xl overflow-hidden border border-[#E8E5E0] hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col"
+                className="ration-card group bg-white rounded-[28px] overflow-hidden border border-[#E8E5E0] hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex h-full flex-col"
               >
-                <div className="relative aspect-[4/3]">
+                <div className="relative aspect-[6/5] overflow-hidden">
                   <img
                     src={ration.imageUrl || "/images/hero_food_1.jpg"}
                     alt={ration.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute top-3 right-3 px-3 py-1 bg-[#E07B3A] text-white text-sm font-semibold rounded-full flex items-center gap-1">
+                  <div className="absolute top-4 right-4 px-3 py-1.5 bg-[#E07B3A] text-white text-sm font-semibold rounded-full flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5" />
                     {ration.calories} ккал
                   </div>
                 </div>
-                <div className="p-5 flex flex-col flex-1">
-                  <h3 className="text-xl font-semibold text-[#1E1E1E] mb-1">{ration.name}</h3>
-                  <p className="text-sm text-[#6B6B6B] mb-3">{ration.calories} ккал в день</p>
-
-                  <div className="flex items-center gap-3 mb-3 text-sm">
-                    <span className="bg-[#F5F1EB] px-2 py-1 rounded text-[#1E1E1E]">
-                      Б {ration.protein}г
-                    </span>
-                    <span className="bg-[#F5F1EB] px-2 py-1 rounded text-[#1E1E1E]">
-                      Ж {ration.fat}г
-                    </span>
-                    <span className="bg-[#F5F1EB] px-2 py-1 rounded text-[#1E1E1E]">
-                      У {ration.carbs}г
-                    </span>
+                <div className="p-6 flex flex-col flex-1">
+                  <div className="mb-4">
+                    <h3 className="text-[2rem] leading-none font-semibold tracking-[-0.03em] text-[#1E1E1E] mb-2">
+                      {ration.name}
+                    </h3>
+                    <p className="text-base text-[#6B6B6B]">{ration.calories} ккал в день</p>
                   </div>
 
-                  <p className="text-sm text-[#6B6B6B] mb-2 flex-1">
+                  <div className="grid grid-cols-3 gap-2 mb-5 text-sm">
+                    <div className="rounded-2xl bg-[#F5F1EB] px-3 py-2">
+                      <div className="text-[#6B6B6B] text-xs uppercase tracking-[0.14em]">Б</div>
+                      <div className="text-[#1E1E1E] font-medium mt-1">{ration.protein}г</div>
+                    </div>
+                    <div className="rounded-2xl bg-[#F5F1EB] px-3 py-2">
+                      <div className="text-[#6B6B6B] text-xs uppercase tracking-[0.14em]">Ж</div>
+                      <div className="text-[#1E1E1E] font-medium mt-1">{ration.fat}г</div>
+                    </div>
+                    <div className="rounded-2xl bg-[#F5F1EB] px-3 py-2">
+                      <div className="text-[#6B6B6B] text-xs uppercase tracking-[0.14em]">У</div>
+                      <div className="text-[#1E1E1E] font-medium mt-1">{ration.carbs}г</div>
+                    </div>
+                  </div>
+
+                  <p className="text-[15px] leading-8 text-[#6B6B6B] mb-5 flex-1">
                     {ration.targetAudience || ration.description}
                   </p>
 
-                  {/* Day selector tabs */}
-                  <div className="flex gap-1 mb-3">
+                  <div className="grid grid-cols-4 gap-2 mb-5">
                     {DAY_OPTIONS.map((opt) => (
                       <button
                         key={opt.days}
@@ -127,7 +133,7 @@ export function Rations({ onSelectRation }: RationsProps) {
                         onClick={() =>
                           setSelectedDays((prev) => ({ ...prev, [ration.id]: opt.days }))
                         }
-                        className={`flex-1 py-1 text-xs rounded-lg font-medium transition-colors ${
+                        className={`min-h-[44px] rounded-2xl text-sm font-medium transition-colors ${
                           days === opt.days
                             ? "bg-[#6B7B5E] text-white"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -138,19 +144,19 @@ export function Rations({ onSelectRation }: RationsProps) {
                     ))}
                   </div>
 
-                  <div className="mt-auto pt-3 border-t border-[#E8E5E0]">
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-2xl font-bold text-[#1E1E1E]">
+                  <div className="mt-auto pt-5 border-t border-[#E8E5E0]">
+                    <div className="flex items-end gap-2 mb-4">
+                      <span className="text-[2.2rem] leading-none font-bold tracking-[-0.04em] text-[#1E1E1E]">
                         {price.toLocaleString("ru-RU")} ₽
                       </span>
-                      <span className="text-sm text-[#6B6B6B]">
+                      <span className="text-base text-[#6B6B6B] pb-1">
                         / {DAY_OPTIONS.find((d) => d.days === days)?.label.toLowerCase()}
                       </span>
                     </div>
-                    <div className="flex gap-2 mt-3">
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant="outline"
-                        className="flex-1 border-[#6B7B5E] text-[#6B7B5E] hover:bg-[#6B7B5E]/5"
+                        className="w-full border-[#6B7B5E] text-[#6B7B5E] hover:bg-[#6B7B5E]/5"
                         onClick={() => {
                           setMenuSlug(ration.slug);
                           setMenuOpen(true);
@@ -161,7 +167,7 @@ export function Rations({ onSelectRation }: RationsProps) {
                       </Button>
                       <Button
                         onClick={() => onSelectRation(ration.id)}
-                        className="flex-1 bg-[#6B7B5E] hover:bg-[#4A5A3F] text-white"
+                        className="w-full bg-[#6B7B5E] hover:bg-[#4A5A3F] text-white"
                       >
                         Выбрать
                         <ArrowRight className="w-4 h-4 ml-1" />
