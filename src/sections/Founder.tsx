@@ -54,16 +54,16 @@ export function Founder() {
           <div className="founder-text">
             <Quote className="w-10 h-10 text-[#6B7B5E]/30 mb-4" />
             <blockquote className="text-xl sm:text-2xl text-[#1E1E1E] leading-relaxed mb-6 italic">
-              {getContent("founder_quote", "Я создал этот сервис, потому что большинство людей не могут добиться результата не из-за лени, а из-за отсутствия удобной системы питания.")}
+              {getContent("founder_quote", "Правильное питание — это фундамент, на котором строится всё: здоровье, энергия, спортивные результаты и качество жизни.")}
             </blockquote>
             <h3 className="text-xl font-semibold text-[#1E1E1E] mb-1">
               {getContent("founder_name", "Олег Зубарев")}
             </h3>
             <p className="text-[#6B6B6B] mb-4">
-              {getContent("founder_role", "Основатель in balance nutrition. Фитнес тренер и нутрициолог.")}
+              {getContent("founder_role", "Основатель in balance nutrition. Фитнес-тренер и нутрициолог.")}
             </p>
-            <p className="text-[#6B6B6B] mb-6">
-              {getContent("founder_text", "Более 10 лет я помогаю людям трансформировать тела. Знаю, что главная проблема — это не мотивация, а отсутствие готового решения.")}
+            <p className="text-[#6B6B6B] mb-6 leading-relaxed">
+              {getContent("founder_text", "Много лет я работаю в сфере фитнеса, и спорт — моё главное призвание. Я убеждён: питание — ключевой элемент нашей жизнедеятельности, особенно когда мы ведём активный образ жизни. Именно поэтому я принял решение не просто составлять рационы, но и организовывать их доставку. Чтобы вы не тратили силы и время на готовку, подсчёт калорий и прочие рутинные задачи. Мы разработали сбалансированное питание, которое подходит под любые цели — будь то набор массы, похудение или поддержание формы.")}
             </p>
             <a
               href={getConfig("founder_instagram", "https://www.instagram.com/zubarevoleg_kzn")}

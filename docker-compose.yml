@@ -22,11 +22,11 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       DATABASE_URL: mysql://inbalance:inbalance_pass@db:3306/inbalance
-      APP_SECRET: ${APP_SECRET}
-      APP_ID: ${APP_ID}
     depends_on:
       db:
         condition: service_healthy
