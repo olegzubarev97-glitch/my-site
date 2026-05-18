@@ -88,25 +88,11 @@ def clean_number(val):
 def parse_prices_from_sheet(ws):
     """Find price rows at the end of the sheet."""
     rows = list(ws.iter_rows(values_only=True))
-    # Look for rows containing '1 день', '3 дня', etc.
-    price_labels_row = None
     price_values_row = None
     for i in range(len(rows) - 1, -1, -1):
         row = rows[i]
-        if any(isinstance(c, str) and "дн" in c.lower() for c in row if c):
-            price_labels_row = row
-            # The value row should be just before or after
-            for j in range(i + 1, len(rows)):
-                r = rows[j]
-                if any(isinstance(c, str) and "р" in c for c in r if c):
-                    price_values_row = r
-                    break
-            if not price_values_row and i > 0:
-                for j in range(i - 1, -1, -1):
-                    r = rows[j]
-                    if any(isinstance(c, str) and "р" in c for c in r if c):
-                        price_values_row = r
-                        break
+        if any(isinstance(c, str) and "р" in c for c in row if c):
+            price_values_row = row
             break
 
     if not price_values_row:
@@ -124,7 +110,6 @@ def parse_prices_from_sheet(ws):
         else:
             prices.append(None)
 
-    # Ensure we have 5 prices (1, 3, 5, 7, 14 days)
     while len(prices) < 5:
         prices.append(None)
     return prices[:5]
@@ -159,7 +144,6 @@ def main():
 
             ws = wb[sheet_name]
             df = pd.DataFrame(ws.iter_rows(values_only=True))
-            # Set first row as header
             if len(df) > 0:
                 df.columns = df.iloc[0]
                 df = df.iloc[1:].reset_index(drop=True)
@@ -172,35 +156,46 @@ def main():
             price7 = prices[3] or 0
             price14 = prices[4] or 0
 
-            # Filter valid data rows
+            # Extract valid data rows with correct week detection
             valid_rows = []
+            prev_day_idx = -1
+            week = 0
             for _, row in df.iterrows():
                 day = normalize_day(row.get("День"))
                 meal = normalize_meal(row.get("Прием пищи"))
                 dish_name = clean_name(row.get("Блюдо"))
                 kcal = clean_number(row.get("Ккал"))
-                if day and meal and dish_name and kcal is not None:
-                    valid_rows.append(row)
+
+                if not day:
+                    continue
+
+                day_idx = DAY_ORDER[day]
+                if day_idx < prev_day_idx:
+                    week += 1
+                prev_day_idx = day_idx
+
+                if not meal or not dish_name or kcal is None:
+                    continue
+
+                valid_rows.append((week, day_idx, day, meal, dish_name, row))
 
             # Calculate average daily macros
             day_macros = {}
-            for row in valid_rows:
-                day = normalize_day(row.get("День"))
+            for week, day_idx, day, meal, dish_name, row in valid_rows:
                 protein = clean_number(row.get("Белки")) or 0
                 fat = clean_number(row.get("Жиры")) or 0
                 carbs = clean_number(row.get("Углеводы")) or 0
                 kcal = clean_number(row.get("Ккал"))
-                # Sanity check: fix obvious Excel typos where carbs are 10x+ too high
                 if carbs > 150 and kcal and kcal > 0:
                     calc_carbs = (kcal - protein * 4 - fat * 9) / 4
                     if calc_carbs > 0:
                         carbs = round(calc_carbs, 1)
-                if day:
-                    if day not in day_macros:
-                        day_macros[day] = [0.0, 0.0, 0.0]
-                    day_macros[day][0] += protein
-                    day_macros[day][1] += fat
-                    day_macros[day][2] += carbs
+                key = (week, day)
+                if key not in day_macros:
+                    day_macros[key] = [0.0, 0.0, 0.0]
+                day_macros[key][0] += protein
+                day_macros[key][1] += fat
+                day_macros[key][2] += carbs
 
             avg_protein = round(sum(v[0] for v in day_macros.values()) / max(len(day_macros), 1), 1)
             avg_fat = round(sum(v[1] for v in day_macros.values()) / max(len(day_macros), 1), 1)
@@ -222,36 +217,19 @@ def main():
 
             print(f"\nImporting {name} ({len(valid_rows)} rows, prices={prices})...")
 
-            # Track day occurrences to assign week
-            day_occurrence = {}
-
-            for row in valid_rows:
-                day = normalize_day(row.get("День"))
-                meal = normalize_meal(row.get("Прием пищи"))
-                dish_name = clean_name(row.get("Блюдо"))
+            for week, day_idx, day, meal, dish_name, row in valid_rows:
                 weight = clean_weight(row.get("Вес, г"))
                 protein = clean_number(row.get("Белки")) or 0
                 fat = clean_number(row.get("Жиры")) or 0
                 carbs = clean_number(row.get("Углеводы")) or 0
                 kcal = clean_number(row.get("Ккал"))
 
-                if not day or not meal or not dish_name:
-                    continue
-                if kcal is None:
-                    continue
-
-                # Sanity check: fix obvious Excel typos where carbs are 10x+ too high
-                if carbs > 150 and kcal > 0:
+                if carbs > 150 and kcal and kcal > 0:
                     calc_carbs = (kcal - protein * 4 - fat * 9) / 4
                     if calc_carbs > 0:
                         carbs = round(calc_carbs, 1)
 
-                # Count day occurrence to determine week
-                day_occurrence[day] = day_occurrence.get(day, 0) + 1
-                occurrence = day_occurrence[day]
-                # First 7 occurrences = week 1 (dayIndex 0-6), next 7 = week 2 (dayIndex 7-13)
-                week = 0 if occurrence <= 7 else 1
-                day_index = DAY_ORDER[day] + (week * 7)
+                day_index = day_idx + (week * 7)
 
                 # Ensure dish exists
                 name_key = dish_name.lower()
