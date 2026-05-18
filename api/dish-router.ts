@@ -1,8 +1,36 @@
 import { z } from "zod";
 import { createRouter, publicQuery, adminQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { dishes } from "@db/schema";
-import { eq, desc } from "drizzle-orm";
+import { dishes, dailyMeals, dailyMealDishes } from "@db/schema";
+import { eq, desc, sql } from "drizzle-orm";
+
+const MEAL_TYPE_ORDER: Record<string, number> = {
+  "Завтрак": 0,
+  "Обед": 1,
+  "Ужин": 2,
+  "Перекус": 3,
+};
+
+function getMostFrequentMealType(
+  dishId: number,
+  links: { dishId: number; mealType: string }[]
+): string {
+  const counts = new Map<string, number>();
+  for (const link of links) {
+    if (link.dishId !== dishId) continue;
+    const mt = link.mealType;
+    counts.set(mt, (counts.get(mt) ?? 0) + 1);
+  }
+  let best = "Перекус";
+  let bestCount = 0;
+  for (const [mt, count] of counts) {
+    if (count > bestCount) {
+      bestCount = count;
+      best = mt;
+    }
+  }
+  return best;
+}
 
 export const dishRouter = createRouter({
   list: publicQuery.query(async () => {
@@ -78,6 +106,29 @@ export const dishRouter = createRouter({
 
   adminList: adminQuery.query(async () => {
     const db = getDb();
-    return db.select().from(dishes).orderBy(desc(dishes.createdAt));
+    const allDishes = await db.select().from(dishes).orderBy(dishes.name);
+
+    // Get meal type usage for each dish
+    const links = await db
+      .select({
+        dishId: dailyMealDishes.dishId,
+        mealType: dailyMeals.mealType,
+      })
+      .from(dailyMealDishes)
+      .innerJoin(dailyMeals, eq(dailyMeals.id, dailyMealDishes.dailyMealId));
+
+    const dishesWithCategory = allDishes.map((dish) => ({
+      ...dish,
+      category: getMostFrequentMealType(dish.id, links),
+    }));
+
+    // Sort by category order, then by name
+    return dishesWithCategory.sort((a, b) => {
+      const catDiff =
+        (MEAL_TYPE_ORDER[a.category] ?? 99) -
+        (MEAL_TYPE_ORDER[b.category] ?? 99);
+      if (catDiff !== 0) return catDiff;
+      return a.name.localeCompare(b.name, "ru");
+    });
   }),
 });

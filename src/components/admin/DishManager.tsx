@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/providers/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  "Завтрак": "Завтраки",
+  "Обед": "Обеды",
+  "Ужин": "Ужины",
+  "Перекус": "Перекусы",
+};
+
+const CATEGORY_ORDER = ["Завтрак", "Обед", "Ужин", "Перекус"];
 
 export function DishManager() {
   const { data: dishesList, refetch } = trpc.dish.adminList.useQuery();
@@ -84,39 +93,62 @@ export function DishManager() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dishesList?.map((d) => (
-              <TableRow key={d.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-3">
-                    {d.imageUrl && (
-                      <img src={d.imageUrl} alt={d.name} className="w-10 h-10 rounded-lg object-cover" />
-                    )}
-                    {d.name}
-                  </div>
-                </TableCell>
-                <TableCell>{d.calories}</TableCell>
-                <TableCell>{d.protein}/{d.fat}/{d.carbs}</TableCell>
-                <TableCell>{d.weight}</TableCell>
-                <TableCell>
-                  <Switch checked={d.isActive} disabled />
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(d)}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => deleteMutation.mutate({ id: d.id })}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {(() => {
+              const grouped = new Map<string, typeof dishesList>();
+              for (const d of dishesList ?? []) {
+                const cat = (d as any).category || "Перекус";
+                if (!grouped.has(cat)) grouped.set(cat, []);
+                grouped.get(cat)!.push(d);
+              }
+              const rows: React.ReactNode[] = [];
+              for (const cat of CATEGORY_ORDER) {
+                const items = grouped.get(cat);
+                if (!items || items.length === 0) continue;
+                rows.push(
+                  <TableRow key={`cat-${cat}`} className="bg-gray-50">
+                    <TableCell colSpan={6} className="font-semibold text-[#6B7B5E] py-2">
+                      {CATEGORY_LABELS[cat] || cat} ({items.length})
+                    </TableCell>
+                  </TableRow>
+                );
+                for (const d of items) {
+                  rows.push(
+                    <TableRow key={d.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          {d.imageUrl && (
+                            <img src={d.imageUrl} alt={d.name} className="w-10 h-10 rounded-lg object-cover" />
+                          )}
+                          {d.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>{d.calories}</TableCell>
+                      <TableCell>{d.protein}/{d.fat}/{d.carbs}</TableCell>
+                      <TableCell>{d.weight}</TableCell>
+                      <TableCell>
+                        <Switch checked={d.isActive} disabled />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => openEdit(d)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => deleteMutation.mutate({ id: d.id })}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
+              }
+              return rows;
+            })()}
           </TableBody>
         </Table>
       </div>
