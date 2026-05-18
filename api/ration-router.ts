@@ -18,7 +18,7 @@ const mealSchema = z.object({
 });
 
 const daySchema = z.object({
-  dayIndex: z.number().int().min(0).max(6),
+  dayIndex: z.number().int().min(0).max(13),
   dayName: z.string().min(1).max(20),
   meals: z.array(mealSchema).default([]),
 });

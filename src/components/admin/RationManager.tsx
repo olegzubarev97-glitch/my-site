@@ -10,7 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
-const DAY_NAMES = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
+const DAY_NAMES = [
+  "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье",
+  "Понедельник (2)", "Вторник (2)", "Среда (2)", "Четверг (2)", "Пятница (2)", "Суббота (2)", "Воскресенье (2)",
+];
 const MEAL_TYPES = [
   { value: "Завтрак", label: "Завтрак" },
   { value: "Обед", label: "Обед" },

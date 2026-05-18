@@ -3,7 +3,10 @@ import { trpc } from "@/providers/trpc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Flame, ChefHat, Loader2 } from "lucide-react";
 
-const DAY_NAMES = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const DAY_NAMES = [
+  "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс",
+  "Пн (2)", "Вт (2)", "Ср (2)", "Чт (2)", "Пт (2)", "Сб (2)", "Вс (2)",
+];
 const MEAL_LABELS: Record<string, string> = {
   breakfast: "Завтрак",
   lunch: "Обед",
